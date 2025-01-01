@@ -1,0 +1,9 @@
+pytube
+google-api-python-client
+yt-dlp
+moviepy==1.0.3
+gTTS
+SpeechRecognition
+pydub
+easyocr
+fastapi[standard]

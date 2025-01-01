@@ -1,0 +1,5 @@
+venv/
+output.mp4
+output1.mp4
+__pycache__/
+.env
