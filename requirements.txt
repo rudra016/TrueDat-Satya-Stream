@@ -10,3 +10,5 @@ fastapi[standard]
 nltk
 spacy
 langchain-community
+kaggle
+scikit-learn

@@ -13,7 +13,8 @@ import os
 import io
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from serper_check import serper_check
+from serper_check import serper_check_news, serper_check_search
+from initial_screen import predict
 
 load_dotenv()
 
@@ -89,7 +90,9 @@ def image_to_text():
 def root():
     return {"message": "Welcome to the live stream recorder!"}
 
+
 # Video check endpoint that processes the YouTube URL
+
 @app.get("/video_check")
 async def video_check(youtube_url: str):
     try:
@@ -98,12 +101,24 @@ async def video_check(youtube_url: str):
         # Record the live stream for 30 seconds
         record_live_stream(stream_url, duration=30, output_file="output.mp4")
         video_to_audio()
-        message=audio_to_text()
-        result = await fast_check(TextData(text=message))
-        return result
+        message = audio_to_text()
+
+        # Initial check (First model prediction)
+        result1 = await initial_check(TextData(text=message))
+        
+        # Fast check (Second source verification)
+        result2 = await fast_check_news(TextData(text=message))
+        
+        # Merge the results into a single response
+        combined_result = {
+            "initial_check": result1,
+            "fast_check": result2
+        }
+        
+        return combined_result
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return {"error": str(e)}
     
 
 @app.post("/image_check")
@@ -118,27 +133,67 @@ async def image_check(file: UploadFile = File(...)):
 
         # Extract text from the image
         text = pytesseract.image_to_string(image)
-
-        return JSONResponse(content={"success": True, "extracted_text": text})
+        result1= await initial_check(TextData(text=text))
+        result2=await fast_check_search(TextData(text=text))
+        
+        combined_result={
+            "initial_check": result1,
+            "fast_check": result2
+        }
+        return combined_result
+    
     except Exception as e:
         return JSONResponse(content={"success": False, "error": str(e)})
     
-# @app.get("/image_check")
-# def image_check():
-#     # handling logic of file uploading
-#     return image_to_text()
+
     
+
 @app.get("/text_check")
-def text_check():
+def text_check(text_data : TextData):
     #handling logic of writing a text
-    return {"message": "Text is written"}
+    cleaned_text = clean_text(text_data.text)
+    combined_result = {
+        "initial_check": initial_check(TextData(text=cleaned_text)),
+        "fast_check": fast_check_news(TextData(text=cleaned_text))
+    }
+    return {"result": combined_result}
 
 
-@app.get("/fast_check")
-async def fast_check(data: TextData):
+@app.post("/audio_check")
+async def audio_check(file: UploadFile = File(...)):
+    try:
+        # Read the uploaded audio file
+        audio_bytes = await file.read()
+        transcription = audio_to_text(audio_bytes)
+        result1 = await initial_check(TextData(text=transcription))
+        result2 = await fast_check_news(TextData(text=transcription))
+
+        # Combine the results
+        combined_result = {
+            "initial_check": result1,
+            "fast_check": result2
+        }
+
+        return {"result": combined_result}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/initial_check")   #The initial check is done here
+async def initial_check(data: TextData):
+   result= predict(data.text)    
+   return {"result": result}
+
+
+@app.get("/fast_check_news")
+async def fast_check_news(data: TextData):
     text=data.text
     cleaned_text = clean_text(text)
-    entities = find_entity("Is this true?"+" "+cleaned_text)
-    return serper_check(cleaned_text)
-    
-    
+    return serper_check_news(cleaned_text)
+
+
+@app.get("/fast_check_search")
+async def fast_check_search(data: TextData):
+    text=data.text
+    cleaned_text = clean_text(text)
+    return serper_check_search(cleaned_text)
