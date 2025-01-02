@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Video = () => {
+  const [videoLink, setVideoLink] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setResponseMessage('');
+    
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/video_check?youtube_url=${videoLink}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch analysis');
+      }
+      const data = await response.json();
+      setResponseMessage(data.message || 'Analysis complete!');
+    } catch (error) {
+      setResponseMessage('An error occurred while analyzing the video.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div>
       <nav className="bg-gray-800 text-white">
@@ -40,26 +63,33 @@ const Video = () => {
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <label htmlFor="videoLink" className="block text-sm font-medium text-gray-300">
               Enter a video link:
             </label>
             <input
               type="url"
               id="videoLink"
+              value={videoLink}
+              onChange={(e) => setVideoLink(e.target.value)}
               placeholder="https://example.com/video"
               className="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-2"
+              required
             />
-            <button type="submit">
-              <a
-                className="inline-block w-full rounded bg-purple-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-purple-500"
-                href="#"
-              >
-                Submit and Analyse
-              </a>
+            <button
+              type="submit"
+              className="inline-block w-full rounded bg-purple-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-purple-500"
+            >
+              {isLoading ? 'Analyzing...' : 'Submit and Analyse'}
             </button>
           </form>
         </div>
+
+        {responseMessage && (
+          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
+            {responseMessage}
+          </div>
+        )}
       </section>
     </div>
   );
