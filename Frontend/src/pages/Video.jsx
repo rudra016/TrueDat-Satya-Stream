@@ -22,7 +22,7 @@ const Video = () => {
       }
       const data = await response.json();
 
-      if (data?.initial_check?.result?.prediction[0] === false) {
+      if (data?.initial_check?.result?.prediction[0] === "false") {
         setPotentialFalseClaim(true);
         setNewsData(data?.fast_check?.news);
       }
