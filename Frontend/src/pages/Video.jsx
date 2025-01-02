@@ -24,11 +24,11 @@ const Video = () => {
 
       if (data?.initial_check?.result?.prediction[0] === "false") {
         setPotentialFalseClaim(true);
-        setNewsData(data?.fast_check_news?.news);
+        setNewsData(data?.fast_check?.news);
       }
 
-      if (data?.fast_check_news?.news) {
-        const topNews = Object.values(data?.fast_check_news?.news).slice(0, 3);
+      if (data?.fast_check?.news) {
+        const topNews = Object.values(data?.fast_check?.news).slice(0, 3);
         const formattedResponse = topNews
           .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
           .join('<br />');
