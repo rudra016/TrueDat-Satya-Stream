@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Audio = () => {
+  const [audioFile, setAudioFile] = useState(null);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(null);
   const [selectedStar, setSelectedStar] = useState(null);
   const [randomTransform, setRandomTransform] = useState('');
 
   const generateRandomShift = () => {
-    const randomX = Math.random() < 0.5 ? -20 : 20; // Random left or right
-    const randomY = Math.random() < 0.5 ? -20 : 20; // Random up or down
+    const randomX = Math.random() < 0.5 ? -20 : 20;
+    const randomY = Math.random() < 0.5 ? -20 : 20;
     return `translate(${randomX}px, ${randomY}px)`;
   };
 
@@ -28,6 +31,42 @@ const Audio = () => {
   const handleStarMouseLeave = () => {
     setHoveredStar(null);
     setRandomTransform('');
+  };
+
+  const handleFileChange = (e) => {
+    setAudioFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!audioFile) {
+      setResponseMessage('Please select an audio file to upload.');
+      return;
+    }
+
+    setIsLoading(true);
+    setResponseMessage('');
+
+    const formData = new FormData();
+    formData.append('audio', audioFile);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/audio_check', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload and analyze the audio.');
+      }
+
+      const data = await response.json();
+      setResponseMessage(data.message || 'Audio analysis complete!');
+    } catch (error) {
+      setResponseMessage('An error occurred while analyzing the audio.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,7 +107,7 @@ const Audio = () => {
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <label htmlFor="audioFile" className="block text-sm font-medium text-gray-300">
               Select an audio file:
             </label>
@@ -76,18 +115,23 @@ const Audio = () => {
               type="file"
               id="audioFile"
               accept="audio/*"
+              onChange={handleFileChange}
               className="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <button type="submit">
-              <a
-                className="inline-block w-full rounded bg-blue-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-blue-500"
-                href="#"
-              >
-                Upload and Analyse
-              </a>
+            <button
+              type="submit"
+              className="inline-block w-full rounded bg-blue-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-blue-500"
+            >
+              {isLoading ? 'Uploading...' : 'Upload and Analyse'}
             </button>
           </form>
         </div>
+
+        {responseMessage && (
+          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
+            {responseMessage}
+          </div>
+        )}
 
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-4">Rate Your Experience:</h2>
