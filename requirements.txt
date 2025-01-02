@@ -7,3 +7,6 @@ SpeechRecognition
 pydub
 easyocr
 fastapi[standard]
+nltk
+spacy
+gliner-spacy

@@ -6,10 +6,17 @@ import assemblyai as aai
 import pytesseract
 from PIL import Image
 from dotenv import load_dotenv
+from clean_text import clean_text
+from entity_recognition import find_entity
+from pydantic import BaseModel
 import os
 load_dotenv()
 
+
 app = FastAPI()
+
+class TextData(BaseModel):
+    text: str
 
 def get_live_stream_url(youtube_url):
     ydl_opts = {
@@ -63,6 +70,7 @@ def image_to_text():
 
  return text
 
+
 # Root endpoint to provide a welcome message
 @app.get("/")
 def root():
@@ -70,7 +78,7 @@ def root():
 
 # Video check endpoint that processes the YouTube URL
 @app.get("/video_check")
-def video_check(youtube_url: str):
+async def video_check(youtube_url: str):
     try:
         # Get live stream URL
         stream_url = get_live_stream_url(youtube_url)
@@ -78,14 +86,16 @@ def video_check(youtube_url: str):
         record_live_stream(stream_url, duration=30, output_file="output.mp4")
         video_to_audio()
         message=audio_to_text()
-        return {"message": message}
+        result = await fast_check(TextData(text=message))
+        return result
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
 
 @app.get("/audio_check")
 def audio_check():
-    
+     
     # Add logic of uploading an audio file here
     return audio_to_text()
     
@@ -99,6 +109,12 @@ def text_check():
     #handling logic of writing a text
     return {"message": "Text is written"}
 
+
 @app.get("/fast_check")
-def fast_check():
-    return {"message": "Fast check is done"}
+async def fast_check(data: TextData):
+    text=data.text
+    cleaned_text = clean_text(text)
+    entities = find_entity(cleaned_text)
+    
+    return {"entities": entities}
+    
