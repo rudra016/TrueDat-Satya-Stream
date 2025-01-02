@@ -22,13 +22,13 @@ const Video = () => {
       }
       const data = await response.json();
 
-      if (data?.initial_check?.result?.prediction === false) {
+      if (data?.initial_check?.result?.prediction[0] === false) {
         setPotentialFalseClaim(true);
-        setNewsData(data.news);
+        setNewsData(data?.fact_check?.news);
       }
 
-      if (data?.news) {
-        const topNews = Object.values(data.news).slice(0, 3);
+      if (data?.fact_check?.news) {
+        const topNews = Object.values(data?.fact_check?.news).slice(0, 3);
         const formattedResponse = topNews
           .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
           .join('<br />');
@@ -106,7 +106,7 @@ const Video = () => {
             </button>
           </form>
         </div>
-        
+
         {potentialFalseClaim && (
           <div className="mt-8 bg-red-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center">
             <h2 className="text-lg font-bold text-white mb-4">Potential False Claim Detected</h2>
