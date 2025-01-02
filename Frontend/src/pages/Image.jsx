@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Image = () => {
   const [imageFile, setImageFile] = useState(null);
   const [responseMessage, setResponseMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [potentialFalseClaim, setPotentialFalseClaim] = useState(false);
+  const [newsData, setNewsData] = useState(null);
+  const navigate = useNavigate();
   const handleFileChange = (e) => {
     setImageFile(e.target.files[0]);
   };
@@ -21,7 +23,7 @@ const Image = () => {
     setResponseMessage('');
 
     const formData = new FormData();
-    formData.append('file', imageFile); // Ensure field name matches backend
+    formData.append('file', imageFile); 
 
     try {
       const response = await fetch('http://127.0.0.1:8000/image_check', {
@@ -34,13 +36,31 @@ const Image = () => {
       }
 
       const data = await response.json();
-      setResponseMessage(data.extracted_text || 'Image analysis complete!');
+
+      if (data?.initial_check?.result?.prediction[0] === false) {
+        setPotentialFalseClaim(true);
+        setNewsData(data?.fast_check?.news);
+      }
+
+      if (data?.fast_check?.news) {
+        const topNews = Object.values(data?.fast_check?.news).slice(0, 3);
+        const formattedResponse = topNews
+          .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
+          .join('<br />');
+        setResponseMessage(formattedResponse);
+      } else {
+        setResponseMessage('Nothing found.');
+      }
     } catch (error) {
       setResponseMessage('An error occurred while analyzing the image.');
       console.error(error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleViewFullResults = () => {
+    navigate('/fact-check', { state: { newsData } });
   };
 
   return (
@@ -126,6 +146,18 @@ const Image = () => {
             </button>
           </form>
         </div>
+
+        {potentialFalseClaim && (
+          <div className="mt-8 bg-red-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center">
+            <h2 className="text-lg font-bold text-white mb-4">Potential False Claim Detected</h2>
+            <button
+              onClick={handleViewFullResults}
+              className="inline-block w-full rounded bg-red-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-red-500"
+            >
+              View Full Results
+            </button>
+          </div>
+        )}
 
         {responseMessage && (
           <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
