@@ -1,32 +1,51 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Video = () => {
-  const [videoLink, setVideoLink] = useState('');
+const VideoUp = () => {
+  const [videoFile, setVideoFile] = useState(null);
   const [responseMessage, setResponseMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate that the file is a video and within 30 seconds (optional server-side validation can also be done)
+      const fileType = file.type.startsWith('video/');
+      if (!fileType) {
+        setResponseMessage('Please upload a valid video file.');
+        setVideoFile(null);
+        return;
+      }
+      setVideoFile(file); 
+      setResponseMessage('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!videoFile) {
+      setResponseMessage('Please select a video file to upload.');
+      return;
+    }
+
     setIsLoading(true);
     setResponseMessage('');
-    
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/video_check?youtube_url=${videoLink}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch analysis');
-      }
-      const data = await response.json();
 
-      if (data?.news) {
-        const topNews = Object.values(data.news).slice(0, 3);
-        const formattedResponse = topNews
-          .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
-          .join('<br />');
-        setResponseMessage(formattedResponse);
-      } else {
-        setResponseMessage('No relevant news articles found.');
+    const formData = new FormData();
+    formData.append('video', videoFile);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/video_check', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload and analyze the video.');
       }
+
+      const data = await response.json();
+      setResponseMessage(data.message || 'Video analysis complete!');
     } catch (error) {
       setResponseMessage('An error occurred while analyzing the video.');
     } finally {
@@ -64,45 +83,43 @@ const Video = () => {
       <section className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
         <div className="text-center mb-8">
           <h1 className="bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-4xl font-extrabold text-transparent">
-            Submit Video Link for Fact Checking
+            Upload Video for Fact Checking
           </h1>
           <p className="mt-4 text-lg max-w-xl">
-            Paste a video link below, and our advanced AI will analyze it for facts and discrepancies.
+            Submit a video file (max 30 seconds), and our advanced AI will analyze it for facts and discrepancies.
           </p>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <label htmlFor="videoLink" className="block text-sm font-medium text-gray-300">
-              Enter a video link:
+            <label htmlFor="videoFile" className="block text-sm font-medium text-gray-300">
+              Select a video file:
             </label>
             <input
-              type="url"
-              id="videoLink"
-              value={videoLink}
-              onChange={(e) => setVideoLink(e.target.value)}
-              placeholder="https://example.com/video"
-              className="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-2"
+              type="file"
+              id="videoFile"
+              accept="video/*"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 p-2"
               required
             />
             <button
               type="submit"
               className="inline-block w-full rounded bg-purple-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-purple-500"
             >
-              {isLoading ? 'Analyzing...' : 'Submit and Analyse'}
+              {isLoading ? 'Uploading...' : 'Submit and Analyse'}
             </button>
           </form>
         </div>
 
         {responseMessage && (
-          <div
-            className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300"
-            dangerouslySetInnerHTML={{ __html: responseMessage }}
-          />
+          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
+            {responseMessage}
+          </div>
         )}
       </section>
     </div>
   );
 };
 
-export default Video;
+export default VideoUp;

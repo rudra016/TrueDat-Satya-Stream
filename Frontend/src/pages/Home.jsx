@@ -27,10 +27,18 @@ const Home = () => {
             </li>
             <li>
               <Link
+                to="/video-upload"
+                className="hover:text-blue-400 transition-colors duration-300"
+              >
+                Video upload
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/video"
                 className="hover:text-purple-400 transition-colors duration-300"
               >
-                Video
+                Realtime Check
               </Link>
             </li>
             <li>
