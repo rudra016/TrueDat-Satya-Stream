@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Video = () => {
   const [videoLink, setVideoLink] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [potentialFalseClaim, setPotentialFalseClaim] = useState(false);
+  const [newsData, setNewsData] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setResponseMessage('');
-    
+    setPotentialFalseClaim(false);
+
     try {
       const response = await fetch(`http://127.0.0.1:8000/video_check?youtube_url=${videoLink}`);
       if (!response.ok) {
         throw new Error('Failed to fetch analysis');
       }
       const data = await response.json();
+
+      if (data?.initial_check?.result?.prediction === false) {
+        setPotentialFalseClaim(true);
+        setNewsData(data.news);
+      }
 
       if (data?.news) {
         const topNews = Object.values(data.news).slice(0, 3);
@@ -32,6 +41,10 @@ const Video = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleViewFullResults = () => {
+    navigate('/fact-check', { state: { newsData } });
   };
 
   return (
@@ -93,7 +106,19 @@ const Video = () => {
             </button>
           </form>
         </div>
-
+        
+        {potentialFalseClaim && (
+          <div className="mt-8 bg-red-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center">
+            <h2 className="text-lg font-bold text-white mb-4">Potential False Claim Detected</h2>
+            <button
+              onClick={handleViewFullResults}
+              className="inline-block w-full rounded bg-red-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-red-500"
+            >
+              View Full Results
+            </button>
+          </div>
+        )}
+      
         {responseMessage && (
           <div
             className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300"
