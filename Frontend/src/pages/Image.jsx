@@ -1,7 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Image = () => {
+  const [imageFile, setImageFile] = useState(null);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFileChange = (e) => {
+    setImageFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!imageFile) {
+      setResponseMessage('Please select an image file to upload.');
+      return;
+    }
+
+    setIsLoading(true);
+    setResponseMessage('');
+
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    try {
+      const response = await fetch('`http://127.0.0.1:8000/image_check', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload and analyze the image.');
+      }
+
+      const data = await response.json();
+      setResponseMessage(data.message || 'Image analysis complete!');
+    } catch (error) {
+      setResponseMessage('An error occurred while analyzing the image.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div>
       <nav className="bg-gray-800 text-white">
@@ -40,7 +80,7 @@ const Image = () => {
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <label htmlFor="imageFile" className="block text-sm font-medium text-gray-300">
               Select an image file:
             </label>
@@ -48,18 +88,23 @@ const Image = () => {
               type="file"
               id="imageFile"
               accept="image/*"
+              onChange={handleFileChange}
               className="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 p-2"
             />
-            <button type="submit">
-              <a
-                className="inline-block w-full rounded bg-pink-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-pink-500"
-                href="#"
-              >
-                Upload and Analyse
-              </a>
+            <button
+              type="submit"
+              className="inline-block w-full rounded bg-pink-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-pink-500"
+            >
+              {isLoading ? 'Uploading...' : 'Upload and Analyse'}
             </button>
           </form>
         </div>
+
+        {responseMessage && (
+          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
+            {responseMessage}
+          </div>
+        )}
       </section>
     </div>
   );
