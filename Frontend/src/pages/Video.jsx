@@ -64,6 +64,14 @@ const Video = () => {
                      Audio
                    </Link>
                  </li>
+                  <li>
+                               <Link
+                                 to="/text"
+                                 className="hover:text-blue-400 transition-colors duration-300"
+                               >
+                                 Text
+                               </Link>
+                             </li>
                  <li>
                    <Link
                      to="/video-upload"
