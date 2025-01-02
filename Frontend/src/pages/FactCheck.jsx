@@ -11,21 +11,39 @@ const FactCheck = () => {
        <nav className="bg-gray-800 text-white">
               <div className="mx-auto max-w-screen-xl px-4 py-4 flex justify-between items-center">
                 <div className="text-lg font-bold bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  TrueDat
+                TrueDat
                 </div>
                 <ul className="flex gap-6 text-sm font-medium">
+                  
                   <li>
-                    <Link to="/audio" className="hover:text-blue-400 transition-colors duration-300">
+                    <Link
+                      to="/audio"
+                      className="hover:text-blue-400 transition-colors duration-300"
+                    >
                       Audio
                     </Link>
                   </li>
                   <li>
-                    <Link to="/video" className="hover:text-purple-400 transition-colors duration-300">
-                      Video
+                    <Link
+                      to="/video-upload"
+                      className="hover:text-blue-400 transition-colors duration-300"
+                    >
+                      Video upload
                     </Link>
                   </li>
                   <li>
-                    <Link to="/image" className="hover:text-pink-400 transition-colors duration-300">
+                    <Link
+                      to="/video"
+                      className="hover:text-purple-400 transition-colors duration-300"
+                    >
+                      Realtime Check
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/image"
+                      className="hover:text-pink-400 transition-colors duration-300"
+                    >
                       Image
                     </Link>
                   </li>
