@@ -4,8 +4,8 @@ import spacy
 def find_entity(text):
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
-    entities = []
+    entities=""
     for ent in doc.ents:
-        entities.append((ent.text, ent.label_))
+        entities+=ent.text+" "
     return entities
 

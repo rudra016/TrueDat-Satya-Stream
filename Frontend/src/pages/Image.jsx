@@ -21,10 +21,10 @@ const Image = () => {
     setResponseMessage('');
 
     const formData = new FormData();
-    formData.append('image', imageFile);
+    formData.append('file', imageFile); // Ensure field name matches backend
 
     try {
-      const response = await fetch('`http://127.0.0.1:8000/image_check', {
+      const response = await fetch('http://127.0.0.1:8000/image_check', {
         method: 'POST',
         body: formData,
       });
@@ -34,9 +34,10 @@ const Image = () => {
       }
 
       const data = await response.json();
-      setResponseMessage(data.message || 'Image analysis complete!');
+      setResponseMessage(data.extracted_text || 'Image analysis complete!');
     } catch (error) {
       setResponseMessage('An error occurred while analyzing the image.');
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

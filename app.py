@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 import yt_dlp
 import subprocess
 import moviepy.editor as mp
@@ -10,10 +10,23 @@ from clean_text import clean_text
 from entity_recognition import find_entity
 from pydantic import BaseModel
 import os
+import io
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from serper_check import serper_check
+
 load_dotenv()
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Replace with your React app's URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 class TextData(BaseModel):
     text: str
@@ -32,7 +45,7 @@ def get_live_stream_url(youtube_url):
         else:
             raise ValueError("The provided YouTube URL is not a live stream.")
 
-def record_live_stream(stream_url, duration=30, output_file="output.mp4"):
+def record_live_stream(stream_url, duration=60, output_file="output.mp4"):
     command = [
         "ffmpeg",
         "-i", stream_url,
@@ -93,16 +106,27 @@ async def video_check(youtube_url: str):
         raise HTTPException(status_code=400, detail=str(e))
     
 
-@app.get("/audio_check")
-def audio_check():
-     
-    # Add logic of uploading an audio file here
-    return audio_to_text()
+@app.post("/image_check")
+async def image_check(file: UploadFile = File(...)):
+    try:
+        # Read the uploaded file
+        content = await file.read()
+        image = Image.open(io.BytesIO(content))
+
+        # Tesseract OCR setup
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+        # Extract text from the image
+        text = pytesseract.image_to_string(image)
+
+        return JSONResponse(content={"success": True, "extracted_text": text})
+    except Exception as e:
+        return JSONResponse(content={"success": False, "error": str(e)})
     
-@app.get("/image_check")
-def image_check():
-    # handling logic of file uploading
-    return image_to_text()
+# @app.get("/image_check")
+# def image_check():
+#     # handling logic of file uploading
+#     return image_to_text()
     
 @app.get("/text_check")
 def text_check():
@@ -114,7 +138,7 @@ def text_check():
 async def fast_check(data: TextData):
     text=data.text
     cleaned_text = clean_text(text)
-    entities = find_entity(cleaned_text)
+    entities = find_entity("Is this true?"+" "+cleaned_text)
+    return serper_check(cleaned_text)
     
-    return {"entities": entities}
     
