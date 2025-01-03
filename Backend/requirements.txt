@@ -5,15 +5,11 @@ moviepy==1.0.3
 gTTS
 SpeechRecognition
 pydub
-easyocr
 fastapi[standard]
 nltk
 spacy
 langchain-community
 kaggle
 scikit-learn
-paddleocr 
-paddlepaddle
-keras_ocr
-tensorflow
 assemblyai
+pytesseract
