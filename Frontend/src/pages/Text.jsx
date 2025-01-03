@@ -19,7 +19,7 @@ const Text = () => {
     setResponseMessage('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/text_check', {
+      const response = await fetch('https://truedat-satya-stream.onrender.com/text_check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -26,7 +26,7 @@ const Image = () => {
     formData.append('file', imageFile); 
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/image_check', {
+      const response = await fetch('https://truedat-satya-stream.onrender.com/image_check', {
         method: 'POST',
         body: formData,
       });

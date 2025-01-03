@@ -16,7 +16,7 @@ const Video = () => {
     setPotentialFalseClaim(false);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/video_check?youtube_url=${videoLink}`);
+      const response = await fetch(`https://truedat-satya-stream.onrender.com/video_check?youtube_url=${videoLink}`);
       if (!response.ok) {
         throw new Error('Failed to fetch analysis');
       }

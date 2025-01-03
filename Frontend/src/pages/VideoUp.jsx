@@ -29,15 +29,12 @@ const VideoUp = () => {
       setResponseMessage('Please select a video file to upload.');
       return;
     }
-
     setIsLoading(true);
     setResponseMessage('');
-
     const formData = new FormData();
     formData.append('file', videoFile);
-
     try {
-      const response = await fetch('http://127.0.0.1:8000/video_upload', {
+      const response = await fetch('https://truedat-satya-stream.onrender.com/video_upload', {
         method: 'POST',
         body: formData,
       });

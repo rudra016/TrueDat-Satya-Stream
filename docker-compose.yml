@@ -23,17 +23,3 @@ services:
     depends_on:
       - backend
 
-  db:
-    image: postgres:14
-    container_name: postgres_container
-    environment:
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: your_database
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
