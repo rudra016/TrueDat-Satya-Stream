@@ -96,7 +96,7 @@ const Audio = () => {
        <nav className="bg-gray-800 text-white">
               <div className="mx-auto max-w-screen-xl px-4 py-4 flex justify-between items-center">
                 <div className="text-lg font-bold bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                TrueDat
+               <a href="/">TrueDat</a> 
                 </div>
                 <ul className="flex gap-6 text-sm font-medium">
                   
@@ -164,11 +164,11 @@ const Audio = () => {
               id="audioFile"
               accept="audio/*"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full text-sm p-[0.5rem] text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               type="submit"
-              className="inline-block w-full rounded bg-blue-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-blue-500"
+              className="inline-block  w-full rounded bg-blue-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-blue-500"
             >
               {isLoading ? 'Uploading...' : 'Upload and Analyse'}
             </button>

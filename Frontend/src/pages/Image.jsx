@@ -68,7 +68,7 @@ const Image = () => {
        <nav className="bg-gray-800 text-white">
               <div className="mx-auto max-w-screen-xl px-4 py-4 flex justify-between items-center">
                 <div className="text-lg font-bold bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                TrueDat
+                <a href="/">TrueDat</a> 
                 </div>
                 <ul className="flex gap-6 text-sm font-medium">
                   

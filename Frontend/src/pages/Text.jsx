@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Text = () => {
   const [textInput, setTextInput] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [potentialFalseClaim, setPotentialFalseClaim] = useState(false);
+  const [newsData, setNewsData] = useState(null);
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!textInput.trim()) {
@@ -29,8 +31,24 @@ const Text = () => {
         throw new Error('Failed to analyze the text.');
       }
 
+      
       const data = await response.json();
-      setResponseMessage(data.analysis_result || 'Text analysis complete!');
+
+     
+      if (data?.result?.initial_check?.result?.prediction[0] === "false") {
+        setPotentialFalseClaim(true); 
+        setNewsData(data?.result?.fast_check?.news);
+      }
+
+      if (data?.result?.fast_check?.news) {
+        const topNews = Object.values(data?.result?.fast_check?.news).slice(0, 3);
+        const formattedResponse = topNews
+          .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
+          .join('<br />');
+        setResponseMessage(formattedResponse);
+      } else {
+        setResponseMessage('No relevant news articles found.');
+      }
     } catch (error) {
       setResponseMessage('An error occurred while analyzing the text.');
       console.error(error);
@@ -38,13 +56,16 @@ const Text = () => {
       setIsLoading(false);
     }
   };
+  const handleViewFullResults = () => {
+    navigate('/fact-check', { state: { newsData } });
+  };
 
   return (
     <div>
       <nav className="bg-gray-800 text-white">
         <div className="mx-auto max-w-screen-xl px-4 py-4 flex justify-between items-center">
           <div className="text-lg font-bold bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-            TrueDat
+          <a href="/">TrueDat</a> 
           </div>
           <ul className="flex gap-6 text-sm font-medium">
             <li>
@@ -123,9 +144,15 @@ const Text = () => {
           </form>
         </div>
 
-        {responseMessage && (
-          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
-            {responseMessage}
+        {potentialFalseClaim && (
+          <div className="mt-8 bg-red-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center">
+            <h2 className="text-lg font-bold text-white mb-4">Potential False Claim Detected</h2>
+            <button
+              onClick={handleViewFullResults}
+              className="inline-block w-full rounded bg-red-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-red-500"
+            >
+              View Full Results
+            </button>
           </div>
         )}
       </section>

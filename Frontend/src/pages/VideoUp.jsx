@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const VideoUp = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [responseMessage, setResponseMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [potentialFalseClaim, setPotentialFalseClaim] = useState(false);
+  const [newsData, setNewsData] = useState(null);
+  const navigate = useNavigate();
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -32,10 +34,10 @@ const VideoUp = () => {
     setResponseMessage('');
 
     const formData = new FormData();
-    formData.append('video', videoFile);
+    formData.append('file', videoFile);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/video_check', {
+      const response = await fetch('http://127.0.0.1:8000/video_upload', {
         method: 'POST',
         body: formData,
       });
@@ -45,12 +47,28 @@ const VideoUp = () => {
       }
 
       const data = await response.json();
-      setResponseMessage(data.message || 'Video analysis complete!');
+      if (data?.initial_check?.result?.prediction[0] === "false") {
+        setPotentialFalseClaim(true);
+        setNewsData(data?.fast_check?.news);
+      }
+
+      if (data?.fast_check?.news) {
+        const topNews = Object.values(data?.fast_check?.news).slice(0, 3);
+        const formattedResponse = topNews
+          .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
+          .join('<br />');
+        setResponseMessage(formattedResponse);
+      } else {
+        setResponseMessage('No relevant news articles found.');
+      }
     } catch (error) {
       setResponseMessage('An error occurred while analyzing the video.');
     } finally {
       setIsLoading(false);
     }
+  };
+  const handleViewFullResults = () => {
+    navigate('/fact-check', { state: { newsData } });
   };
 
   return (
@@ -58,7 +76,7 @@ const VideoUp = () => {
        <nav className="bg-gray-800 text-white">
               <div className="mx-auto max-w-screen-xl px-4 py-4 flex justify-between items-center">
                 <div className="text-lg font-bold bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                TrueDat
+                <a href="/">TrueDat</a> 
                 </div>
                 <ul className="flex gap-6 text-sm font-medium">
                   
@@ -137,12 +155,22 @@ const VideoUp = () => {
             </button>
           </form>
         </div>
-
-        {responseMessage && (
+        {potentialFalseClaim && (
+          <div className="mt-8 bg-red-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center">
+            <h2 className="text-lg font-bold text-white mb-4">Potential False Claim Detected</h2>
+            <button
+              onClick={handleViewFullResults}
+              className="inline-block w-full rounded bg-red-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-red-500"
+            >
+              View Full Results
+            </button>
+          </div>
+        )}
+        {/* {responseMessage && (
           <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
             {responseMessage}
           </div>
-        )}
+        )} */}
       </section>
     </div>
   );

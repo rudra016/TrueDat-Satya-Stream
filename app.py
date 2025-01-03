@@ -15,7 +15,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from serper_check import serper_check_news, serper_check_search
 from initial_screen import predict
-
+import tempfile
+from moviepy.editor import VideoFileClip
 load_dotenv()
 
 
@@ -61,21 +62,43 @@ def record_live_stream(stream_url, duration=60, output_file="output.mp4"):
     except subprocess.CalledProcessError as e:
         print(f"Error recording live stream: {e}")
         
-        
-        
 def video_to_audio():
     video = mp.VideoFileClip("output.mp4")
 
     audio = video.audio
-    audio.write_audiofile("extracted_audio.mp3")
+    audio.write_audiofile("extracted_audio.mp3")       
+        
+def fix_and_process_video(video_file):
+    temp_fd, temp_path = tempfile.mkstemp(suffix=".mp4")
+    fixed_fd, fixed_path = tempfile.mkstemp(suffix=".mp4")
+    try:
+        with os.fdopen(temp_fd, 'wb') as temp_video:
+            temp_video.write(video_file.read())
+
+        # Fix video format using FFmpeg
+        subprocess.run(
+            ["ffmpeg", "-i", temp_path, "-c:v", "libx264", "-preset", "fast", fixed_path],
+            check=True
+        )
+
+        # Process the fixed video
+        video = VideoFileClip(fixed_path)
+        audio = video.audio
+        audio.write_audiofile("extracted_audio.mp3")
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        if os.path.exists(fixed_path):
+            os.remove(fixed_path)
     
 
-def audio_to_text():
+def audio_to_text(file_path: str) -> str:
     aai.settings.api_key = os.getenv("AUDIO_TO_TEXT_ASSEMBLYAI")
     transcriber = aai.Transcriber()
 
-    transcript = transcriber.transcribe("output.mp4")
-    return transcript.text
+    # Transcribe the provided file
+    transcript = transcriber.transcribe(file_path)
+    return transcript.text  
 
 def image_to_text():
  value=Image.open('testing.jpeg')
@@ -120,6 +143,27 @@ async def video_check(youtube_url: str):
     except Exception as e:
         return {"error": str(e)}
     
+@app.post("/video_upload")
+async def video_upload(file: UploadFile = File(...)):
+     try:
+        video_data = await file.read()
+        video_file = io.BytesIO(await file.read())
+       
+        fix_and_process_video(video_file)  
+        
+        # Convert audio to text
+        message = audio_to_text()
+        result1 = await initial_check(TextData(text=message))
+        result2 = await fast_check_news(TextData(text=message))
+    
+        combined_result = {
+            "initial_check": result1,
+            "fast_check": result2
+        }
+        
+        return combined_result
+     except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/image_check")
 async def image_check(file: UploadFile = File(...)):
@@ -148,13 +192,13 @@ async def image_check(file: UploadFile = File(...)):
 
     
 
-@app.get("/text_check")
-def text_check(text_data : TextData):
-    #handling logic of writing a text
+@app.post("/text_check")
+async def text_check(text_data: TextData):
+    # Handling logic for text
     cleaned_text = clean_text(text_data.text)
     combined_result = {
-        "initial_check": initial_check(TextData(text=cleaned_text)),
-        "fast_check": fast_check_news(TextData(text=cleaned_text))
+        "initial_check": await initial_check(TextData(text=cleaned_text)),
+        "fast_check": await fast_check_news(TextData(text=cleaned_text))
     }
     return {"result": combined_result}
 
@@ -164,7 +208,11 @@ async def audio_check(file: UploadFile = File(...)):
     try:
         # Read the uploaded audio file
         audio_bytes = await file.read()
+
+        # Convert audio to text (implement the function)
         transcription = audio_to_text(audio_bytes)
+
+        # Perform checks on the transcribed text
         result1 = await initial_check(TextData(text=transcription))
         result2 = await fast_check_news(TextData(text=transcription))
 
@@ -178,7 +226,7 @@ async def audio_check(file: UploadFile = File(...)):
 
     except Exception as e:
         return {"error": str(e)}
-
+    
 @app.get("/initial_check")   #The initial check is done here
 async def initial_check(data: TextData):
    result= predict(data.text)    
