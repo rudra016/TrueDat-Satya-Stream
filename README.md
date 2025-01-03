@@ -1,4 +1,4 @@
-# Real-Time False Claim Detection System
+# TrueDagt: *Satya Stream, AI powered truth,one stream at a time*
 
 ## Introduction
 
