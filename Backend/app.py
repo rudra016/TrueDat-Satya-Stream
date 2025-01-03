@@ -35,8 +35,9 @@ class TextData(BaseModel):
 
 def get_live_stream_url(youtube_url):
     ydl_opts = {
-        "quiet": True,  # Suppress output
-        "format": "best",  # Get the best quality
+        "quiet": True,  
+        "format": "best",  
+        "cookies": "./youtube_cookies.txt",  
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
