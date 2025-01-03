@@ -4,15 +4,15 @@ FROM node:18 AS build
 # Set the working directory
 WORKDIR /frontend
 
-# Copy the package.json and install dependencies
-COPY package.json yarn.lock ./
-RUN yarn install
+# Copy the package.json and package-lock.json to install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
 
 # Copy the rest of the frontend code
 COPY . .
 
 # Build the frontend
-RUN yarn build
+RUN npm run build
 
 # Use an official Nginx image to serve the frontend
 FROM nginx:alpine
