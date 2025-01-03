@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Audio = () => {
   const [audioFile, setAudioFile] = useState(null);
@@ -8,6 +8,9 @@ const Audio = () => {
   const [hoveredStar, setHoveredStar] = useState(null);
   const [selectedStar, setSelectedStar] = useState(null);
   const [randomTransform, setRandomTransform] = useState('');
+  const [potentialFalseClaim, setPotentialFalseClaim] = useState(false);
+  const [newsData, setNewsData] = useState(null);
+  const navigate = useNavigate();
 
   const generateRandomShift = () => {
     const randomX = Math.random() < 0.5 ? -20 : 20;
@@ -48,26 +51,45 @@ const Audio = () => {
     setResponseMessage('');
 
     const formData = new FormData();
-    formData.append('audio', audioFile);
+    formData.append('file', audioFile);
 
     try {
       const response = await fetch('http://127.0.0.1:8000/audio_check', {
         method: 'POST',
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to upload and analyze the audio.');
       }
 
       const data = await response.json();
-      setResponseMessage(data.message || 'Audio analysis complete!');
+
+     
+      if (data?.result?.initial_check?.result?.prediction[0] === "false") {
+        setPotentialFalseClaim(true); 
+        setNewsData(data?.result?.fast_check?.news);
+      }
+
+      if (data?.result?.fast_check?.news) {
+        const topNews = Object.values(data?.result?.fast_check?.news).slice(0, 3);
+        const formattedResponse = topNews
+          .map((item, index) => `<strong>${index + 1}. ${item.title}</strong>: <a href="${item.link}" target="_blank">${item.link}</a>`)
+          .join('<br />');
+        setResponseMessage(formattedResponse);
+      } else {
+        setResponseMessage('No relevant news articles found.');
+      }
     } catch (error) {
       setResponseMessage('An error occurred while analyzing the audio.');
     } finally {
       setIsLoading(false);
     }
   };
+  const handleViewFullResults = () => {
+    navigate('/fact-check', { state: { newsData } });
+  };
+
 
   return (
     <div>
@@ -153,9 +175,15 @@ const Audio = () => {
           </form>
         </div>
 
-        {responseMessage && (
-          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
-            {responseMessage}
+        {potentialFalseClaim && (
+          <div className="mt-8 bg-red-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center">
+            <h2 className="text-lg font-bold text-white mb-4">Potential False Claim Detected</h2>
+            <button
+              onClick={handleViewFullResults}
+              className="inline-block w-full rounded bg-red-600 px-8 py-3 text-sm font-medium text-white transition hover:rotate-2 hover:scale-110 focus:outline-none focus:ring active:bg-red-500"
+            >
+              View Full Results
+            </button>
           </div>
         )}
 

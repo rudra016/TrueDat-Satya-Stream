@@ -65,7 +65,7 @@ const FactCheck = () => {
             Fact Check Results
           </h1>
           <p className="mt-4 text-lg max-w-xl">
-            Here are the detailed results for the analyzed video.
+            Here are the detailed results for the analyzed file.
           </p>
         </div>
 

@@ -37,7 +37,7 @@ const Image = () => {
 
       const data = await response.json();
 
-      if (data?.initial_check?.result?.prediction[0] === false) {
+      if (data?.initial_check?.result?.prediction[0] === "false") {
         setPotentialFalseClaim(true);
         setNewsData(data?.fast_check?.organic);
       }
@@ -156,12 +156,6 @@ const Image = () => {
             >
               View Full Results
             </button>
-          </div>
-        )}
-
-        {responseMessage && (
-          <div className="mt-8 bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md text-center text-sm text-gray-300">
-            {responseMessage}
           </div>
         )}
       </section>
