@@ -25,6 +25,7 @@ const Home = () => {
                 Audio
               </Link>
             </li>
+           
             <li>
               <Link
                 to="/text"
@@ -87,9 +88,9 @@ const Home = () => {
 
               <a
                 className="block w-full rounded border border-blue-600 px-12 py-3 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring active:bg-blue-500 sm:w-auto"
-                href="#"
+                href="/advance-features"
               >
-                Learn More
+                Advance Features
               </a>
             </div>
           </div>

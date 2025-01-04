@@ -7,36 +7,37 @@ import Image from "./pages/Image";
 import VideoUp from "./pages/VideoUp";
 import FactCheck from "./pages/FactCheck";
 import Text from "./pages/Text";
+import AdvanceDash from "./pages/AdvanceDash";
 
 function App() {
-  const [showModal, setShowModal] = useState(false);
+  // const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-     openCustomModal();
-      const message = "Are you sure you want to leave? Your work may be lost.";
-      e.preventDefault();
-      e.returnValue = message; // This triggers the default confirmation dialog
-      return message;
-    };
+  // useEffect(() => {
+  //   const handleBeforeUnload = (e) => {
+  //    openCustomModal();
+  //     const message = "Are you sure you want to leave? Your work may be lost.";
+  //     e.preventDefault();
+  //     e.returnValue = message; // This triggers the default confirmation dialog
+  //     return message;
+  //   };
     
-    // Add event listener to handle tab close/refresh
-    window.addEventListener("beforeunload", handleBeforeUnload);
+  //   // Add event listener to handle tab close/refresh
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // Cleanup on component unmount
-    return () => {
+  //   // Cleanup on component unmount
+  //   return () => {
       
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, []);
 
-  const openCustomModal = () => {
-    setShowModal(true);
-  };
+  // const openCustomModal = () => {
+  //   setShowModal(true);
+  // };
 
-  const closeModal = () => {
-    setShowModal(false);
-  };
+  // const closeModal = () => {
+  //   setShowModal(false);
+  // };
 
   return (
     <>
@@ -48,8 +49,9 @@ function App() {
         <Route path="/video-upload" element={<VideoUp />} />
         <Route path="/text" element={<Text />} />
         <Route path="/fact-check" element={<FactCheck />} />
+        <Route path="/advance-features" element={<AdvanceDash />} />
       </Routes>
-      {showModal && (
+      {/* {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg text-center max-w-sm mx-auto">
             <h2 className="text-2xl font-bold mb-4">Thank you for not leaving :)</h2>
@@ -67,7 +69,7 @@ function App() {
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 }
