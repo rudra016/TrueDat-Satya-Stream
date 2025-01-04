@@ -24,7 +24,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
+    allow_origins=["http://localhost:5173"],  # Replace with your React app's URL
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
@@ -92,12 +92,12 @@ def fix_and_process_video(video_file):
             os.remove(fixed_path)
     
 
-def audio_to_text(file_path: str) -> str:
+def audio_to_text():
     aai.settings.api_key = os.getenv("AUDIO_TO_TEXT_ASSEMBLYAI")
     transcriber = aai.Transcriber()
 
     # Transcribe the provided file
-    transcript = transcriber.transcribe(file_path)
+    transcript = transcriber.transcribe("extracted_audio.mp3")
     return transcript.text  
 
 def image_to_text():
